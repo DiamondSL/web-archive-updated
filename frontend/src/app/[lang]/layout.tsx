@@ -1,17 +1,27 @@
+'use client'
+import * as React from 'react';
 import type { Metadata } from "next";
-import "./globals.css";
 import { getStrapiMedia, getStrapiURL } from "./utils/api-helpers";
 import { fetchAPI } from "./utils/fetch-api";
+import '@fontsource-variable/archivo'
+import '@fontsource-variable/open-sans'
 
 import { i18n } from "../../../i18n-config";
-import Banner from "./components/Banner";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
+import {CssBaseline, ThemeProvider} from "@mui/material";
+import {darkTheme} from "@/app/theme/theme";
+import createEmotionCache from "@/app/theme/createEmotionCache";
+import {CacheProvider} from "@emotion/react";
+import {ReactNode} from "react";
 
 const FALLBACK_SEO = {
-  title: "Strapi Starter Next Blog",
-  description: "Strapi Starter Next Blog",
+  title: "Documented",
+  description: "Ukrainian resource about fact-checking",
 }
+
+const clientSideEmotionCache = createEmotionCache();
+
 
 
 async function getGlobal(): Promise<any> {
@@ -62,24 +72,23 @@ export default async function RootLayout({
   children,
   params,
 }: {
-  children: React.ReactNode;
+  children?: ReactNode;
   params: { lang: string };
 }) {
   const global = await getGlobal();
   // TODO: CREATE A CUSTOM ERROR PAGE
   if (!global.data) return null;
   
-  const { notificationBanner, navbar, footer } = global.data.attributes;
+  const { navbar } = global.data.attributes;
 
   const navbarLogoUrl = getStrapiMedia(
     navbar.navbarLogo.logoImg.data.attributes.url
   );
 
-  const footerLogoUrl = getStrapiMedia(
-    footer.footerLogo.logoImg.data.attributes.url
-  );
-
   return (
+      <CacheProvider value={clientSideEmotionCache}>
+      <ThemeProvider theme={darkTheme}>
+        <CssBaseline enableColorScheme={true} />
     <html lang={params.lang}>
       <body>
         <Navbar
@@ -87,23 +96,13 @@ export default async function RootLayout({
           logoUrl={navbarLogoUrl}
           logoText={navbar.navbarLogo.logoText}
         />
-
-        <main className="dark:bg-black dark:text-gray-100 min-h-screen">
+        <main id={'#root'}>
           {children}
         </main>
-
-        <Banner data={notificationBanner} />
-
-        <Footer
-          logoUrl={footerLogoUrl}
-          logoText={footer.footerLogo.logoText}
-          menuLinks={footer.menuLinks}
-          categoryLinks={footer.categories.data}
-          legalLinks={footer.legalLinks}
-          socialLinks={footer.socialLinks}
-        />
       </body>
     </html>
+      </ThemeProvider>
+      </CacheProvider>
   );
 }
 
